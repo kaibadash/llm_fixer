@@ -1,0 +1,34 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require "thor"
+require_relative "../lib/static_analysis_fixer"
+
+class CLI < Thor
+  desc "fix COMMAND [ARGS...]", "静的解析のエラーをLLMで自動修正"
+  method_option :command, type: :string, required: false
+  def fix(*args)
+    unless ENV["OPENAI_API_KEY"]
+      puts "環境変数OPENAI_API_KEYが設定されていません"
+      exit 1
+    end
+
+    puts "args: #{args.inspect}" # デバッグ用
+    if args.empty?
+      puts "Usage: llm_autofix fix COMMAND [ARGS...]"
+      exit 1
+    end
+
+    puts "command: #{args.join(' ')}"
+    fixer = StaticAnalysisFixer.new(ENV.fetch("OPENAI_API_KEY", nil))
+    success = fixer.fix_file(args)
+    exit(1) unless success
+  end
+
+  def self.exit_on_failure?
+    true
+  end
+end
+
+puts "start llm_autofix"
+CLI.start(ARGV)
