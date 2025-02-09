@@ -19,3 +19,7 @@ AllCops:
     - "config/**/*"
     - "db/**/*"
     - "deploy/**/*"
+
+Rails/Output:
+  Enabled: false
+  AutoCorrect: false

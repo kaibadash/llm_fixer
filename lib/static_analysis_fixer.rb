@@ -6,11 +6,13 @@ require "tempfile"
 require "pry"
 require "erb"
 
+# Main class to handle static analysis fixes
 class StaticAnalysisFixer
   DEFAULT_MODEL = "gpt-4o"
   DEFAULT_API_BASE = "https://api.openai.com/v1"
 
   def initialize(api_key)
+    # Initialize OpenAI client with API key
     @client = OpenAI::Client.new(
       access_token: ENV.fetch("API_KEY", api_key),
       uri_base: ENV.fetch("LLM_API_BASE", DEFAULT_API_BASE),
@@ -60,13 +62,14 @@ class StaticAnalysisFixer
 
   def generate_fix(file_path, command, error_output)
     file_content = File.read(file_path)
-    prompt = build_prompt(file_path, command, error_output, file_content)
-
+    messages = build_messages(file_path, command, error_output, file_content)
+    puts messages
     full_response = ""
+    puts "===== Start generating fix ====="
     @client.chat(
       parameters: {
         model: @model,
-        messages: [{ role: "user", content: prompt }],
+        messages: messages,
         stream: proc { |chunk|
           content = chunk.dig("choices", 0, "delta", "content")
           if content
@@ -80,13 +83,31 @@ class StaticAnalysisFixer
     full_response
   end
 
-  def build_prompt(file_path, command, error_output, file_content)
-    template_path = File.join(File.dirname(__FILE__), 'templates/fix_prompt.erb')
-    template = ERB.new(File.read(template_path))
-    template.result(binding)
+  def build_messages(file_path, command, error_output, file_content)
+    templates = {
+      system: "fix_prompt_system.erb",
+      assistant: "fix_prompt_assistant.erb",
+      user: "fix_prompt_user.erb",
+    }
+
+    messages = []
+    b = binding
+    system_template = ERB.new(File.read(File.join(File.dirname(__FILE__),
+                                                  "templates/#{templates[:system]}")))
+    messages << { role: "system", content: system_template.result(b) }
+    assistant_template = ERB.new(File.read(File.join(File.dirname(__FILE__),
+                                                     "templates/#{templates[:assistant]}")))
+    messages << { role: "assistant", content: assistant_template.result(b) }
+    user_template = ERB.new(File.read(File.join(File.dirname(__FILE__),
+                                                "templates/#{templates[:user]}")))
+    messages << { role: "user", content: user_template.result(b) }
+
+    messages
   end
 
   def apply_patch(patch)
+    puts "patch: #{patch}"
+    puts "==============="
     Tempfile.create("patch") do |f|
       f.write(patch)
       f.close
