@@ -39,10 +39,10 @@ export PATH="$PATH:/path/to/static-analysis-fixer/bin"
 Run your static analysis tool command (e.g., RuboCop)
 
 ```bash
-llm_autofix your-lint-or-test-command path/to/target
+llm_autofix fix your-lint-or-test-command path/to/target
 
 # Rubocop example
-llm_autofix bundle exec rubocop path/to/target.rb
+llm_autofix fix bundle exec rubocop path/to/target.rb
 ```
 
 The tool will automatically detect and fix static errors in your code!
