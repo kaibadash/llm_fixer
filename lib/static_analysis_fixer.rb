@@ -4,6 +4,7 @@ require "openai"
 require "open3"
 require "tempfile"
 require "pry"
+require "erb"
 
 class StaticAnalysisFixer
   DEFAULT_MODEL = "gpt-4o"
@@ -38,12 +39,12 @@ class StaticAnalysisFixer
     new_output, new_status = run_command(command)
 
     unless new_status.success?
-      Rails.logger.debug "After correction, there are still errors:"
-      Rails.logger.debug new_output
+      puts "After correction, there are still errors:"
+      puts new_output
       return false
     end
 
-    Rails.logger.debug "#{file_path} was fixed!"
+    puts "#{file_path} was fixed!"
     true
   end
 
@@ -69,7 +70,7 @@ class StaticAnalysisFixer
         stream: proc { |chunk|
           content = chunk.dig("choices", 0, "delta", "content")
           if content
-            Rails.logger.debug content
+            puts content
             full_response += content
           end
         },
@@ -80,22 +81,9 @@ class StaticAnalysisFixer
   end
 
   def build_prompt(file_path, command, error_output, file_content)
-    <<~PROMPT
-      Please generate a patch to fix the following static analysis errors.
-      Command executed: #{command}
-
-      File content:
-      #{file_content}
-
-      Error output:
-      #{error_output}
-
-      Please output only the patch in unified diff format.
-      Use #{file_path} as the filename.
-      No explanation is needed other than the patch.
-      Delete unnecessary lines instead of commenting them out.
-      Fix only the error location.
-    PROMPT
+    template_path = File.join(File.dirname(__FILE__), 'templates/fix_prompt.erb')
+    template = ERB.new(File.read(template_path))
+    template.result(binding)
   end
 
   def apply_patch(patch)
@@ -103,7 +91,6 @@ class StaticAnalysisFixer
       f.write(patch)
       f.close
       patch_command = "patch -f -p1 < #{f.path}"
-      Rails.logger.debug "Applying patch: #{patch_command}"
       system(patch_command)
     end
   end
