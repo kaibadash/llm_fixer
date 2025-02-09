@@ -6,8 +6,16 @@ require "tempfile"
 require "pry"
 
 class StaticAnalysisFixer
+  DEFAULT_MODEL = "gpt-4o"
+  DEFAULT_API_BASE = "https://api.openai.com/v1"
+
   def initialize(api_key)
-    @client = OpenAI::Client.new(access_token: api_key)
+    @client = OpenAI::Client.new(
+      access_token: ENV.fetch("API_KEY", api_key),
+      uri_base: ENV.fetch("LLM_API_BASE", DEFAULT_API_BASE),
+      request_timeout: 120
+    )
+    @model = ENV.fetch("LLM_MODEL", DEFAULT_MODEL)
   end
 
   def fix_file(args)
@@ -15,22 +23,22 @@ class StaticAnalysisFixer
     output, status = run_command(command)
     return true if status.success?
 
-    # コマンドライン引数から後ろ順に既存のファイルパスを探す
+    # Search for existing file paths from command line arguments in reverse order
     file_path = args.reverse.find { |arg| File.exist?(arg) }
     return false unless file_path
 
-    # LLMに修正を依頼
+    # Request correction from LLM
     patch = generate_fix(file_path, command, output)
     return false unless patch
 
-    # パッチを適用
+    # Apply the patch
     apply_patch(patch)
 
-    # 再度チェック
+    # Check again
     new_output, new_status = run_command(command)
 
     unless new_status.success?
-      puts "修正後もエラーが残っています："
+      puts "After correction, there are still errors:"
       puts new_output
       return false
     end
@@ -41,9 +49,11 @@ class StaticAnalysisFixer
   private
 
   def run_command(command)
-    # コマンドを適切に分割して配列として実行
     command_parts = command.split
-    Open3.capture2(*command_parts)
+    command_path = `which #{command_parts[0]}`.strip
+    return ["Command not found: #{command_parts[0]}", false] if command_path.empty?
+    
+    Open3.capture2(ENV.to_h, command_path, *command_parts[1..])
   end
 
   def generate_fix(file_path, command, error_output)
@@ -53,7 +63,7 @@ class StaticAnalysisFixer
     full_response = ""
     @client.chat(
       parameters: {
-        model: "gpt-4o",
+        model: @model,
         messages: [{ role: "user", content: prompt }],
         stream: proc { |chunk|
           content = chunk.dig("choices", 0, "delta", "content")
@@ -70,18 +80,20 @@ class StaticAnalysisFixer
 
   def build_prompt(file_path, command, error_output, file_content)
     <<~PROMPT
-      以下の静的解析エラーを修正するパッチを生成してください。
-      実行コマンド: #{command}
+      Please generate a patch to fix the following static analysis errors.
+      Command executed: #{command}
 
-      ファイルの内容:
+      File content:
       #{file_content}
 
-      エラー内容:
+      Error output:
       #{error_output}
 
-      unified diff形式のパッチのみを出力してください。
-      ファイル名は#{file_path}としてください。
-      パッチ以外の説明は不要です。
+      Please output only the patch in unified diff format.
+      Use #{file_path} as the filename.
+      No explanation is needed other than the patch.
+      Delete unnecessary lines instead of commenting them out.
+      Do not fix errors outside the error location.
     PROMPT
   end
 
@@ -89,7 +101,7 @@ class StaticAnalysisFixer
     Tempfile.create("patch") do |f|
       f.write(patch)
       f.close
-      system("patch -p0 < #{f.path}")
+      system("patch -f -p0 < #{f.path}")
     end
   end
 end

@@ -5,15 +5,15 @@ require "thor"
 require_relative "../lib/static_analysis_fixer"
 
 class CLI < Thor
-  desc "fix COMMAND [ARGS...]", "静的解析のエラーをLLMで自動修正"
+  desc "fix COMMAND [ARGS...]", "Static analysis errors are automatically fixed by LLM"
   method_option :command, type: :string, required: false
   def fix(*args)
-    unless ENV["OPENAI_API_KEY"]
-      puts "環境変数OPENAI_API_KEYが設定されていません"
+    unless ENV["API_KEY"]
+      puts "API_KEY is not set"
       exit 1
     end
 
-    puts "args: #{args.inspect}" # デバッグ用
+    puts "args: #{args.inspect}"
     if args.empty?
       puts "Usage: llm_autofix fix COMMAND [ARGS...]"
       exit 1
