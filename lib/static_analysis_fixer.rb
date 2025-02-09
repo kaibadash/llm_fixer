@@ -13,7 +13,7 @@ class StaticAnalysisFixer
     @client = OpenAI::Client.new(
       access_token: ENV.fetch("API_KEY", api_key),
       uri_base: ENV.fetch("LLM_API_BASE", DEFAULT_API_BASE),
-      request_timeout: 120
+      request_timeout: 600,
     )
     @model = ENV.fetch("LLM_MODEL", DEFAULT_MODEL)
   end
@@ -38,11 +38,12 @@ class StaticAnalysisFixer
     new_output, new_status = run_command(command)
 
     unless new_status.success?
-      puts "After correction, there are still errors:"
-      puts new_output
+      Rails.logger.debug "After correction, there are still errors:"
+      Rails.logger.debug new_output
       return false
     end
 
+    Rails.logger.debug "#{file_path} was fixed!"
     true
   end
 
@@ -52,7 +53,7 @@ class StaticAnalysisFixer
     command_parts = command.split
     command_path = `which #{command_parts[0]}`.strip
     return ["Command not found: #{command_parts[0]}", false] if command_path.empty?
-    
+
     Open3.capture2(ENV.to_h, command_path, *command_parts[1..])
   end
 
@@ -68,7 +69,7 @@ class StaticAnalysisFixer
         stream: proc { |chunk|
           content = chunk.dig("choices", 0, "delta", "content")
           if content
-            print content
+            Rails.logger.debug content
             full_response += content
           end
         },
@@ -93,7 +94,7 @@ class StaticAnalysisFixer
       Use #{file_path} as the filename.
       No explanation is needed other than the patch.
       Delete unnecessary lines instead of commenting them out.
-      Do not fix errors outside the error location.
+      Fix only the error location.
     PROMPT
   end
 
@@ -101,7 +102,9 @@ class StaticAnalysisFixer
     Tempfile.create("patch") do |f|
       f.write(patch)
       f.close
-      system("patch -f -p0 < #{f.path}")
+      patch_command = "patch -f -p1 < #{f.path}"
+      Rails.logger.debug "Applying patch: #{patch_command}"
+      system(patch_command)
     end
   end
 end

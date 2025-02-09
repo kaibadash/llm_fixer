@@ -1,26 +1,26 @@
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
-require "thor"
-require_relative "../lib/static_analysis_fixer"
+require 'thor'
+require_relative '../lib/static_analysis_fixer'
 
 class CLI < Thor
-  desc "fix COMMAND [ARGS...]", "Static analysis errors are automatically fixed by LLM"
+  desc 'fix COMMAND [ARGS...]', 'Static analysis errors are automatically fixed by LLM'
   method_option :command, type: :string, required: false
   def fix(*args)
-    unless ENV["API_KEY"]
-      puts "API_KEY is not set"
+    unless ENV['API_KEY']
+      puts 'API_KEY is not set'
       exit 1
     end
 
     puts "args: #{args.inspect}"
     if args.empty?
-      puts "Usage: llm_autofix fix COMMAND [ARGS...]"
+      puts 'Usage: llm_autofix fix COMMAND [ARGS...]'
       exit 1
     end
 
     puts "command: #{args.join(' ')}"
-    fixer = StaticAnalysisFixer.new(ENV.fetch("OPENAI_API_KEY", nil))
+    fixer = StaticAnalysisFixer.new(ENV.fetch('OPENAI_API_KEY', nil))
     success = fixer.fix_file(args)
     exit(1) unless success
   end
@@ -30,5 +30,5 @@ class CLI < Thor
   end
 end
 
-puts "start llm_autofix"
+puts 'start llm_autofix'
 CLI.start(ARGV)
