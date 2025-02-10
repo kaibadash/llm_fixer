@@ -5,6 +5,7 @@ require "open3"
 require "tempfile"
 require "pry"
 require "erb"
+require "colorize"
 
 # Main class to handle static analysis fixes
 class StaticAnalysisFixer
@@ -44,12 +45,12 @@ class StaticAnalysisFixer
     new_output, new_status = run_command(command)
 
     unless new_status.success?
-      puts "After correction, there are still errors:"
+      puts "After correction, there are still errors:".red
       puts new_output
       return false
     end
 
-    puts "#{file_path} was fixed!"
+    puts "#{file_path} was fixed!".green
     true
   end
 
