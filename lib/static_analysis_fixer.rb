@@ -24,7 +24,10 @@ class StaticAnalysisFixer
   def fix_file(args)
     command = args.join(" ")
     output, status = run_command(command)
-    return true if status.success?
+    if status.success?
+      puts "No errors found"
+      return true
+    end
 
     # Search for existing file paths from command line arguments in reverse order
     file_path = args.reverse.find { |arg| File.exist?(arg) }
