@@ -110,12 +110,12 @@ class StaticAnalysisFixer
   end
 
   def apply_patch(patch)
-    puts "patch: #{patch}"
+    puts "patch: \n#{patch}"
     puts "==============="
     Tempfile.create("patch") do |f|
       f.write(patch)
       f.close
-      patch_command = "patch -f -p1 < #{f.path}"
+      patch_command = "patch -f --no-backup-if-mismatch -p1 < #{f.path}"
       system(patch_command)
     end
   end
