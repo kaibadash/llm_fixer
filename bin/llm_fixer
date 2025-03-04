@@ -2,25 +2,29 @@
 # frozen_string_literal: true
 
 require 'thor'
-require_relative '../lib/static_analysis_fixer'
+require_relative '../lib/llm_fixer/static_analysis_fixer'
 
 class CLI < Thor
   desc 'fix COMMAND [ARGS...]', 'Static analysis errors are automatically fixed by LLM'
   method_option :command, type: :string, required: false
+  #######3
   def fix(*args)
-    unless ENV['API_KEY']
-      puts 'API_KEY is not set'
+    puts "環境変数の確認: LLM_API_KEY=#{ENV['LLM_API_KEY'].inspect}"
+    puts "全環境変数: #{ENV.to_h.inspect}"
+    
+    unless ENV['LLM_API_KEY']
+      puts 'LLM_API_KEY is not set'
       exit 1
     end
 
     puts "args: #{args.inspect}"
     if args.empty?
-      puts 'Usage: llm_autofix fix COMMAND [ARGS...]'
+      puts 'Usage: llm_fixer fix COMMAND [ARGS...]'
       exit 1
     end
 
     puts "command: #{args.join(' ')}"
-    fixer = StaticAnalysisFixer.new(ENV.fetch('OPENAI_API_KEY', nil))
+    fixer = LlmFixer::StaticAnalysisFixer.new(ENV.fetch('LLM_API_KEY', nil))
     success = fixer.fix_file(args)
     exit(1) unless success
   end
@@ -30,5 +34,5 @@ class CLI < Thor
   end
 end
 
-puts 'start llm_autofix'
+puts 'start llm_fixer'
 CLI.start(ARGV)
