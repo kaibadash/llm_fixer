@@ -24,6 +24,3 @@ AllCops:
 Rails/Output:
   Enabled: false
   AutoCorrect: false
-
-RSpec/LetSetup:
-  Enabled: true
