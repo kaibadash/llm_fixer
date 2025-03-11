@@ -3,7 +3,6 @@
 require "openai"
 require "open3"
 require "tempfile"
-require "pry"
 require "erb"
 require "colorize"
 require "ostruct"
