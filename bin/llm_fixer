@@ -7,15 +7,15 @@ require_relative '../lib/llm_fixer/static_analysis_fixer'
 class CLI < Thor
   desc 'fix COMMAND [ARGS...]', 'Static analysis errors are automatically fixed by LLM'
   method_option :command, type: :string, required: false
-  #######3
+  
   def fix(*args)
-    puts "環境変数の確認: LLM_API_KEY=#{ENV['LLM_API_KEY'].inspect}"
-    puts "全環境変数: #{ENV.to_h.inspect}"
-    
-    unless ENV['LLM_API_KEY']
-      puts 'LLM_API_KEY is not set'
-      exit 1
+    %w[LLM_API_BASE LLM_MODEL LLM_API_KEY].each do |key|
+      unless ENV[key]
+        puts "#{key} is not set"
+        exit 1
+      end
     end
+    
 
     puts "args: #{args.inspect}"
     if args.empty?

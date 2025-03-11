@@ -6,27 +6,27 @@ require "tempfile"
 require "pry"
 require "erb"
 require "colorize"
+require "ostruct"
 
 module LlmFixer
-  # Main class to handle static analysis fixes
   class StaticAnalysisFixer
     DEFAULT_MODEL = "gpt-4o"
     DEFAULT_API_BASE = "https://api.openai.com/v1"
 
     def initialize(api_key)
-      # Initialize OpenAI client with API key
       @client = OpenAI::Client.new(
         access_token: ENV.fetch("LLM_API_KEY", api_key),
         uri_base: ENV.fetch("LLM_API_BASE", DEFAULT_API_BASE),
         request_timeout: 600,
       )
       @model = ENV.fetch("LLM_MODEL", DEFAULT_MODEL)
+      puts "LLM model: #{@model}"
     end
 
     def fix_file(args)
       command = args.join(" ")
-      output, status = run_command(command)
-      if status.success?
+      output, succeeded = run_command(command)
+      if succeeded
         puts "No errors found"
         return true
       end
@@ -43,16 +43,14 @@ module LlmFixer
       apply_patch(patch)
 
       # Check again
-      new_output, new_status = run_command(command)
-
-      unless new_status.success?
-        puts "After correction, there are still errors:".red
-        puts new_output
-        return false
+      output, succeeded = run_command(command)
+      if succeeded
+        puts "#{file_path} was fixed!".green  
+        true
+      else
+        puts "#{file_path} was not fixed!".red
+        false
       end
-
-      puts "#{file_path} was fixed!".green
-      true
     end
 
     private
@@ -62,7 +60,13 @@ module LlmFixer
       command_path = `which #{command_parts[0]}`.strip
       return ["Command not found: #{command_parts[0]}", false] if command_path.empty?
 
-      Open3.capture2(ENV.to_h, command_path, *command_parts[1..])
+      output, status = Open3.capture2(ENV.to_h, command_path, *command_parts[1..])
+      succeeded = status.exitstatus.zero?
+      unless succeeded
+        puts "After correction, there are still errors:".red
+        puts output
+      end
+      [output, succeeded]
     end
 
     def generate_fix(file_path, command, error_output)
@@ -78,13 +82,19 @@ module LlmFixer
           stream: proc { |chunk|
             content = chunk.dig("choices", 0, "delta", "content")
             if content
-              puts content
               full_response += content
             end
           },
         },
       )
 
+      full_response.strip!
+      # remove markdown syntax
+      if full_response.start_with?("```")
+        full_response = full_response.split("\n")[1..-1].join("\n")
+      end
+      puts full_response
+      puts "===== End generating fix ====="
       full_response
     end
 
@@ -111,13 +121,15 @@ module LlmFixer
     end
 
     def apply_patch(patch)
-      puts "patch: \n#{patch}"
-      puts "==============="
       Tempfile.create("patch") do |f|
         f.write(patch)
         f.close
         patch_command = "patch -f --no-backup-if-mismatch -p1 < #{f.path}"
-        system(patch_command)
+        stdout, stderr, status = Open3.capture3(patch_command)
+        unless status.exitstatus.zero?
+          puts "Failed to apply patch: #{stderr}".colorize(:red)
+          exit 1
+        end
       end
     end
   end
