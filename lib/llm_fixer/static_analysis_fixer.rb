@@ -68,6 +68,7 @@ module LlmFixer
       [output, succeeded]
     end
 
+    # rubocop:disable Metrics/MethodLength
     def generate_fix(file_path, command, error_output)
       file_content = File.read(file_path)
       messages = build_messages(file_path, command, error_output, file_content)
@@ -94,6 +95,7 @@ module LlmFixer
       puts "===== End generating fix ====="
       full_response
     end
+    # rubocop:enable Metrics/MethodLength
 
     def build_messages(file_path, command, error_output, file_content)
       templates = {
