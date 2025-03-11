@@ -19,7 +19,11 @@ AllCops:
     - "config/**/*"
     - "db/**/*"
     - "deploy/**/*"
+  NewCops: enable
 
 Rails/Output:
   Enabled: false
   AutoCorrect: false
+
+RSpec/LetSetup:
+  Enabled: true

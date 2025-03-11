@@ -36,16 +36,15 @@ module LlmFixer
       return false unless file_path
 
       # Request correction from LLM
-      patch = generate_fix(file_path, command, output)
-      return false unless patch
+      result = generate_fix(file_path, command, output)
+      return false unless result
 
-      # Apply the patch
-      apply_patch(patch)
+      File.write(file_path, result)
 
       # Check again
-      output, succeeded = run_command(command)
+      _, succeeded = run_command(command)
       if succeeded
-        puts "#{file_path} was fixed!".green  
+        puts "#{file_path} was fixed!".green
         true
       else
         puts "#{file_path} was not fixed!".red
@@ -81,18 +80,14 @@ module LlmFixer
           messages: messages,
           stream: proc { |chunk|
             content = chunk.dig("choices", 0, "delta", "content")
-            if content
-              full_response += content
-            end
+            full_response += content if content
           },
         },
       )
 
       full_response.strip!
       # remove markdown syntax
-      if full_response.start_with?("```")
-        full_response = full_response.split("\n")[1..-1].join("\n")
-      end
+      full_response = full_response.split("\n")[1..].join("\n") if full_response.start_with?("```")
       puts full_response
       puts "===== End generating fix ====="
       full_response
@@ -101,7 +96,6 @@ module LlmFixer
     def build_messages(file_path, command, error_output, file_content)
       templates = {
         system: "fix_prompt_system.erb",
-        assistant: "fix_prompt_assistant.erb",
         user: "fix_prompt_user.erb",
       }
 
@@ -110,9 +104,6 @@ module LlmFixer
       system_template = ERB.new(File.read(File.join(File.dirname(__FILE__),
                                                     "../templates/#{templates[:system]}")))
       messages << { role: "system", content: system_template.result(b) }
-      assistant_template = ERB.new(File.read(File.join(File.dirname(__FILE__),
-                                                       "../templates/#{templates[:assistant]}")))
-      messages << { role: "assistant", content: assistant_template.result(b) }
       user_template = ERB.new(File.read(File.join(File.dirname(__FILE__),
                                                   "../templates/#{templates[:user]}")))
       messages << { role: "user", content: user_template.result(b) }
@@ -120,12 +111,13 @@ module LlmFixer
       messages
     end
 
+    # LLMが警告以外の場所も直した上、差分として上げなかったため、不正なパッチになってしまったので一旦ファイル丸ごと出力されることしにた
     def apply_patch(patch)
       Tempfile.create("patch") do |f|
         f.write(patch)
         f.close
         patch_command = "patch -f --no-backup-if-mismatch -p1 < #{f.path}"
-        stdout, stderr, status = Open3.capture3(patch_command)
+        _, stderr, status = Open3.capture3(patch_command)
         unless status.exitstatus.zero?
           puts "Failed to apply patch: #{stderr}".colorize(:red)
           exit 1
@@ -133,4 +125,4 @@ module LlmFixer
       end
     end
   end
-end 
+end

@@ -26,7 +26,7 @@ Gem::Specification.new do |spec|
   spec.bindir = "bin"
   spec.executables = ["llm_fixer"]
   spec.require_paths = ["lib"]
-  
+
   spec.add_dependency "colorize"
   spec.add_dependency "ruby-openai"
   spec.add_dependency "thor"
@@ -34,5 +34,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "pry"
   spec.add_development_dependency "pry-byebug"
   spec.add_development_dependency "rubocop"
+  spec.add_development_dependency "rubocop-rspec"
   spec.add_development_dependency "rubocop-performance"
-end 
+  spec.metadata["rubygems_mfa_required"] = "true"
+end
