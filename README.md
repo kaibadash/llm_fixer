@@ -1,48 +1,64 @@
 <!-- @format -->
 
-# Static Analysis Fixer
+# LLM fixer
 
-A tool that automatically fixes static analysis errors.
+静的解析エラーを自動的に修正するツールです。
 
-## Environment Variables
+## インストール
 
-You can customize the behavior using the following environment variables:
+Gemfile に以下を追加します:
 
-- `API_KEY` : LLM API key
-- `LLM_API_BASE` : Base URL for LLM API
-- `LLM_MODEL` : LLM model to use
+```ruby
+gem 'llm_fixer'
+```
 
-## Usage
+そして以下を実行します:
 
-Set up your environment variables and add the `bin` directory to your PATH:
+```bash
+$ bundle install
+```
+
+または、以下のようにインストールします:
+
+```bash
+$ gem install llm_fixer
+```
+
+## 環境変数
+
+以下の環境変数を使用して動作をカスタマイズできます:
+
+- `LLM_API_KEY` : LLM API キー
+- `LLM_API_BASE` : LLM API のベース URL
+- `LLM_MODEL` : 使用する LLM モデル
+
+## 使用方法
+
+環境変数を設定します:
 
 ### ChatGPT
 
 ```bash
-export API_KEY="your-api-key-here"
+export LLM_API_KEY="your-api-key-here"
 export LLM_API_BASE="https://api.openai.com/v1"
 export LLM_MODEL="gpt-4o"
-export PATH="$PATH:/path/to/static-analysis-fixer/bin"
 ```
 
 ### Google Gemini
 
 ```bash
-export API_KEY="your-api-key-here"
+export LLM_API_KEY="your-api-key-here"
 export LLM_API_BASE="https://generativelanguage.googleapis.com/v1beta"
 export LLM_MODEL="gemini-2.0-pro-exp"
-export PATH="$PATH:/path/to/static-analysis-fixer/bin"
 ```
 
-### Run
+### 実行
 
-Run your static analysis tool command (e.g., RuboCop)
+静的解析ツールコマンド（例：RuboCop）を実行します:
 
 ```bash
-llm_autofix fix your-lint-or-test-command path/to/target
+llm_fixer fix your-lint-or-test-command path/to/target
 
-# Rubocop example
-llm_autofix fix bundle exec rubocop path/to/target.rb
+# Rubocop例
+llm_fixer fix bundle exec rubocop path/to/target.rb
 ```
-
-The tool will automatically detect and fix static errors in your code!

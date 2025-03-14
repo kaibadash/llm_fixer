@@ -19,6 +19,7 @@ AllCops:
     - "config/**/*"
     - "db/**/*"
     - "deploy/**/*"
+  NewCops: enable
 
 Rails/Output:
   Enabled: false
