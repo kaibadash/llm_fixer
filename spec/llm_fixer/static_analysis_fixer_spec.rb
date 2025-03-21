@@ -43,6 +43,12 @@ RSpec.describe LlmFixer::StaticAnalysisFixer do
         expect(fixer.fix_file(["rubocop", file_path])).to eq(true)
         expect(File).to have_received(:write).with(file_path, "puts 'Hello World'")
       end
+
+      it "passes additional_prompt to generate_fix when provided" do
+        additional_prompt = "Use double quotes instead of single quotes"
+        expect(fixer).to receive(:generate_fix).with(file_path, anything, anything, additional_prompt)
+        fixer.fix_file(["rubocop", file_path], additional_prompt)
+      end
     end
 
     context "when errors remain after fixing" do
@@ -75,6 +81,36 @@ RSpec.describe LlmFixer::StaticAnalysisFixer do
     it "returns formatted response from LLM" do
       result = fixer.send(:generate_fix, file_path, command, error_output)
       expect(result).to eq("puts 'Hello World'")
+    end
+
+    it "passes additional_prompt to build_messages when provided" do
+      additional_prompt = "Use double quotes instead of single quotes"
+      expect(fixer).to receive(:build_messages).with(file_path, command, error_output, anything, additional_prompt)
+      fixer.send(:generate_fix, file_path, command, error_output, additional_prompt)
+    end
+  end
+
+  describe "#build_messages" do
+    let(:file_content) { 'puts "Hello World"' }
+
+    before do
+      allow(File).to receive(:read).and_return("system template content")
+      allow(ERB).to receive(:new).and_return(double(result: "template result"))
+    end
+
+    it "includes additional_prompt in system message when provided" do
+      additional_prompt = "Use double quotes instead of single quotes"
+      messages = fixer.send(:build_messages, file_path, command, error_output, file_content, additional_prompt)
+
+      system_message = messages.find { |msg| msg[:role] == "system" }
+      expect(system_message[:content]).to include(additional_prompt)
+    end
+
+    it "does not modify system message when additional_prompt is nil" do
+      messages = fixer.send(:build_messages, file_path, command, error_output, file_content, nil)
+
+      system_message = messages.find { |msg| msg[:role] == "system" }
+      expect(system_message[:content]).to eq("template result")
     end
   end
 

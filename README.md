@@ -2,39 +2,39 @@
 
 # LLM fixer
 
-静的解析エラーを自動的に修正するツールです。
+A tool that automatically fixes static analysis errors.
 
-## インストール
+## Installation
 
-Gemfile に以下を追加します:
+Add this line to your Gemfile:
 
 ```ruby
 gem 'llm_fixer'
 ```
 
-そして以下を実行します:
+And then execute:
 
 ```bash
 $ bundle install
 ```
 
-または、以下のようにインストールします:
+Or install it yourself as:
 
 ```bash
 $ gem install llm_fixer
 ```
 
-## 環境変数
+## Environment Variables
 
-以下の環境変数を使用して動作をカスタマイズできます:
+You can customize the behavior using the following environment variables:
 
-- `LLM_API_KEY` : LLM API キー
-- `LLM_API_BASE` : LLM API のベース URL
-- `LLM_MODEL` : 使用する LLM モデル
+- `LLM_API_KEY` : LLM API key
+- `LLM_API_BASE` : Base URL for the LLM API
+- `LLM_MODEL` : LLM model to use
 
-## 使用方法
+## Usage
 
-環境変数を設定します:
+Set the environment variables:
 
 ### ChatGPT
 
@@ -52,13 +52,13 @@ export LLM_API_BASE="https://generativelanguage.googleapis.com/v1beta"
 export LLM_MODEL="gemini-2.0-pro-exp"
 ```
 
-### 実行
+### Execution
 
-静的解析ツールコマンド（例：RuboCop）を実行します:
+Run your static analysis tool command (e.g., RuboCop):
 
 ```bash
 llm_fixer fix your-lint-or-test-command path/to/target
 
-# Rubocop例
+# RuboCop example
 llm_fixer fix bundle exec rubocop path/to/target.rb
 ```

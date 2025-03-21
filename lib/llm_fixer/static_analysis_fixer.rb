@@ -22,7 +22,7 @@ module LlmFixer
       puts "LLM model: #{@model}"
     end
 
-    def fix_file(args)
+    def fix_file(args, additional_prompt = nil)
       command = args.join(" ")
       output, succeeded = run_command(command)
       if succeeded
@@ -35,7 +35,7 @@ module LlmFixer
       return false unless file_path
 
       # Request correction from LLM
-      result = generate_fix(file_path, command, output)
+      result = generate_fix(file_path, command, output, additional_prompt)
       return false unless result
 
       File.write(file_path, result)
@@ -67,9 +67,9 @@ module LlmFixer
       [output, succeeded]
     end
 
-    def generate_fix(file_path, command, error_output)
+    def generate_fix(file_path, command, error_output, additional_prompt = nil)
       file_content = File.read(file_path)
-      messages = build_messages(file_path, command, error_output, file_content)
+      messages = build_messages(file_path, command, error_output, file_content, additional_prompt)
       puts messages
       full_response = ""
       puts "===== Start generating fix ====="
@@ -92,7 +92,7 @@ module LlmFixer
       full_response
     end
 
-    def build_messages(file_path, command, error_output, file_content)
+    def build_messages(file_path, command, error_output, file_content, additional_prompt = nil)
       templates = {
         system: "fix_prompt_system.erb",
         user: "fix_prompt_user.erb",
@@ -102,7 +102,9 @@ module LlmFixer
       b = binding
       system_template = ERB.new(File.read(File.join(File.dirname(__FILE__),
                                                     "../templates/#{templates[:system]}")))
-      messages << { role: "system", content: system_template.result(b) }
+      system_content = system_template.result(b)
+      system_content += "\n#{additional_prompt}" if additional_prompt
+      messages << { role: "system", content: system_content }
       user_template = ERB.new(File.read(File.join(File.dirname(__FILE__),
                                                   "../templates/#{templates[:user]}")))
       messages << { role: "user", content: user_template.result(b) }

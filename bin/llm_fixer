@@ -5,8 +5,7 @@ require 'thor'
 require_relative '../lib/llm_fixer/static_analysis_fixer'
 
 class CLI < Thor
-  desc 'fix COMMAND [ARGS...]', 'Static analysis errors are automatically fixed by LLM'
-  method_option :command, type: :string, required: false
+  desc 'fix [--additional-prompt TEXT | -a TEXT] COMMAND [ARGS...]', 'Static analysis errors are automatically fixed by LLM'
   
   def fix(*args)
     %w[LLM_API_BASE LLM_MODEL LLM_API_KEY].each do |key|
@@ -16,16 +15,29 @@ class CLI < Thor
       end
     end
     
-
-    puts "args: #{args.inspect}"
-    if args.empty?
-      puts 'Usage: llm_fixer fix COMMAND [ARGS...]'
+    additional_prompt = nil
+    command_args = args.dup
+    
+    if command_args[0] == '--additional-prompt' || command_args[0] == '-a'
+      command_args.shift
+      additional_prompt = command_args.shift
+      if additional_prompt.nil? || additional_prompt.empty?
+        puts 'ERROR: Additional prompt option requires a value'
+        exit 1
+      end
+    end
+    
+    puts "args: #{command_args.inspect}"
+    if command_args.empty?
+      puts 'Usage: llm_fixer fix [--additional-prompt TEXT | -a TEXT] COMMAND [ARGS...]'
       exit 1
     end
 
-    puts "command: #{args.join(' ')}"
+    puts "command: #{command_args.join(' ')}"
+    puts "additional prompt: #{additional_prompt}" if additional_prompt
+    
     fixer = LlmFixer::StaticAnalysisFixer.new(ENV.fetch('LLM_API_KEY', nil))
-    success = fixer.fix_file(args)
+    success = fixer.fix_file(command_args, additional_prompt)
     exit(1) unless success
   end
 
