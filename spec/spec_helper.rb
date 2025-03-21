@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
-require 'webmock/rspec'
-require 'vcr'
+require "webmock/rspec"
+require "vcr"
 
 # VCRの設定を読み込む
-require_relative 'support/vcr'
+require_relative "support/vcr"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
-  config.example_status_persistence_file_path = '.rspec_status'
+  config.example_status_persistence_file_path = ".rspec_status"
 
   # Disable RSpec exposing methods globally on `Module` and `main`
   config.disable_monkey_patching!
@@ -16,4 +16,4 @@ RSpec.configure do |config|
   config.expect_with :rspec do |c|
     c.syntax = :expect
   end
-end 
+end

@@ -86,9 +86,7 @@ module LlmFixer
 
       full_response.strip!
       # remove markdown syntax
-      if full_response.start_with?("```")
-        full_response = "#{full_response.split("\n")[1..-2].join("\n")}\n"
-      end
+      full_response = "#{full_response.split("\n")[1..-2].join("\n")}\n" if full_response.start_with?("```")
       puts full_response
       puts "===== End generating fix ====="
       full_response

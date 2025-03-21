@@ -19,8 +19,18 @@ AllCops:
     - "config/**/*"
     - "db/**/*"
     - "deploy/**/*"
+    - "llm_fixer.gemspec"
   NewCops: enable
 
 Rails/Output:
   Enabled: false
   AutoCorrect: false
+
+Rails/Exit:
+  Enabled: false
+
+Metrics/BlockLength:
+  Max: 150
+
+Layout/LineLength:
+  Max: 125

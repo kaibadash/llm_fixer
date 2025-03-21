@@ -1,0 +1,67 @@
+---
+http_interactions:
+  - request:
+      method: post
+      uri: https://api.openai.com/v1/chat/completions
+      body:
+        encoding: UTF-8
+        string: '{"model":"gpt-4o","messages":[],"stream":true}'
+      headers:
+        Content-Type:
+          - application/json
+        Authorization:
+          - Bearer [FILTERED]
+        Accept-Encoding:
+          - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+        Accept:
+          - "*/*"
+        User-Agent:
+          - Ruby
+    response:
+      status:
+        code: 200
+        message: OK
+      headers:
+        Date:
+          - Thu, 21 Mar 2024 15:30:00 GMT
+        Content-Type:
+          - text/event-stream
+        Transfer-Encoding:
+          - chunked
+        Connection:
+          - keep-alive
+        Openai-Version:
+          - "2023-05-15"
+        Openai-Processing-Ms:
+          - "257"
+        Openai-Model:
+          - gpt-4o-2024-05-13
+        Strict-Transport-Security:
+          - max-age=15724800; includeSubDomains
+        X-Ratelimit-Limit-Requests:
+          - "10000"
+        X-Ratelimit-Limit-Tokens:
+          - "10000"
+        X-Ratelimit-Remaining-Requests:
+          - "9999"
+        X-Ratelimit-Remaining-Tokens:
+          - "9990"
+        X-Ratelimit-Reset-Requests:
+          - 1.2s
+        X-Ratelimit-Reset-Tokens:
+          - 6ms
+        Access-Control-Allow-Origin:
+          - "*"
+      body:
+        encoding: UTF-8
+        string: |
+          {
+            "choices": [
+              {
+                "delta": {
+                  "content": "puts 'Hello World'"
+                }
+              }
+            ]
+          }
+    recorded_at: Thu, 21 Mar 2024 15:30:00 GMT
