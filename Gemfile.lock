@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    llm_fixer (0.0.1)
+    llm_fixer (0.0.5)
       colorize
       ruby-openai
       thor
