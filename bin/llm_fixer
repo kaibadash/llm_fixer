@@ -2,6 +2,7 @@
 # frozen_string_literal: true
 
 require 'thor'
+require 'faraday'
 require_relative '../lib/llm_fixer/static_analysis_fixer'
 
 class CLI < Thor
@@ -39,6 +40,9 @@ class CLI < Thor
     fixer = LlmFixer::StaticAnalysisFixer.new(ENV.fetch('LLM_API_KEY', nil))
     success = fixer.fix_file(command_args, additional_prompt)
     exit(1) unless success
+  rescue Faraday::Error => e
+    puts "Error: #{e.message}\n#{e.response[:body]}"
+    exit 1
   end
 
   def self.exit_on_failure?
