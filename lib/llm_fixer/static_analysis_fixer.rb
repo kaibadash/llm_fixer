@@ -111,19 +111,5 @@ module LlmFixer
 
       messages
     end
-
-    # LLMが警告以外の場所も直した上、差分として上げなかったため、不正なパッチになってしまったので一旦ファイル丸ごと出力されることしにた
-    def apply_patch(patch)
-      Tempfile.create("patch") do |f|
-        f.write(patch)
-        f.close
-        patch_command = "patch -f --no-backup-if-mismatch -p1 < #{f.path}"
-        _, stderr, status = Open3.capture3(patch_command)
-        unless status.exitstatus.zero?
-          puts "Failed to apply patch: #{stderr}".colorize(:red)
-          exit 1
-        end
-      end
-    end
   end
 end
