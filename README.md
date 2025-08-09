@@ -43,8 +43,6 @@ ChatGPT
 export LLM_API_KEY="your-api-key-here"
 export LLM_API_BASE="https://api.openai.com/v1"
 export LLM_MODEL="gpt-4o"
-# Optional: Set reasoning effort (low, medium, or high)
-export LLM_REASONING_EFFORT="high"
 ```
 
 Google Gemini
@@ -53,8 +51,6 @@ Google Gemini
 export LLM_API_KEY="your-api-key-here"
 export LLM_API_BASE="https://generativelanguage.googleapis.com/v1beta"
 export LLM_MODEL="gemini-2.0-pro-exp"
-# Optional: Set reasoning effort
-export LLM_REASONING_EFFORT="medium"
 ```
 
 Local(LM Studio)
@@ -63,6 +59,8 @@ Local(LM Studio)
 export LLM_API_KEY="n/a"
 export LLM_API_BASE="http://localhost:1234"
 export LLM_MODEL="tinyswallow-1.5b-instruct"
+# Optional: Set reasoning effort (low, medium, or high)
+export LLM_REASONING_EFFORT="high"
 ```
 
 ##
