@@ -19,7 +19,9 @@ module LlmFixer
         request_timeout: 600,
       )
       @model = ENV.fetch("LLM_MODEL", DEFAULT_MODEL)
+      @reasoning_effort = ENV.fetch("LLM_REASONING_EFFORT", nil)
       puts "LLM model: #{@model}"
+      puts "Reasoning effort: #{@reasoning_effort}" if @reasoning_effort
     end
 
     def fix_file(args, additional_prompt = nil)
@@ -73,16 +75,19 @@ module LlmFixer
       puts messages
       full_response = ""
       puts "===== Start generating fix ====="
-      @client.chat(
-        parameters: {
-          model: @model,
-          messages: messages,
-          stream: proc { |chunk|
-            content = chunk.dig("choices", 0, "delta", "content")
-            full_response += content if content
-          },
+
+      parameters = {
+        model: @model,
+        messages: messages,
+        stream: proc { |chunk|
+          content = chunk.dig("choices", 0, "delta", "content")
+          full_response += content if content
         },
-      )
+      }
+
+      parameters[:reasoning] = { effort: @reasoning_effort } if %w(low medium high).include?(@reasoning_effort)
+
+      @client.chat(parameters: parameters)
 
       full_response.strip!
       # remove markdown syntax

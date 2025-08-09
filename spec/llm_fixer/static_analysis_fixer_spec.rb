@@ -12,6 +12,25 @@ RSpec.describe LlmFixer::StaticAnalysisFixer do
     "Error: Style/StringLiterals: Prefer single-quoted strings when you don't need string interpolation or special symbols."
   end
 
+  describe "#initialize" do
+    it "defaults reasoning_effort to nil when environment variable is not set" do
+      expect(fixer.instance_variable_get(:@reasoning_effort)).to be_nil
+    end
+
+    it "uses environment variable when set" do
+      allow(ENV).to receive(:fetch) do |key, default|
+        case key
+        when "LLM_REASONING_EFFORT"
+          "medium"
+        else
+          ENV.values_at(key).first || default
+        end
+      end
+      fixer_env = described_class.new(api_key)
+      expect(fixer_env.instance_variable_get(:@reasoning_effort)).to eq("medium")
+    end
+  end
+
   describe "#fix_file" do
     before do
       allow(File).to receive(:exist?).and_return(false)
@@ -87,6 +106,44 @@ RSpec.describe LlmFixer::StaticAnalysisFixer do
       additional_prompt = "Use double quotes instead of single quotes"
       expect(fixer).to receive(:build_messages).with(file_path, command, error_output, anything, additional_prompt)
       fixer.send(:generate_fix, file_path, command, error_output, additional_prompt)
+    end
+
+    context "with reasoning_effort from environment" do
+      let(:fixer_with_reasoning) do
+        allow(ENV).to receive(:fetch) do |key, default|
+          case key
+          when "LLM_REASONING_EFFORT"
+            "high"
+          else
+            ENV.values_at(key).first || default
+          end
+        end
+        described_class.new(api_key)
+      end
+
+      before do
+        allow(fixer_with_reasoning).to receive(:build_messages).and_return([])
+      end
+
+      it "includes reasoning parameter when reasoning_effort is set" do
+        expect(client_double).to receive(:chat) do |params|
+          expect(params[:parameters][:reasoning]).to eq({ effort: "high" })
+          params[:parameters][:stream]&.call({ "choices" => [{ "delta" => { "content" => "puts 'Hello World'" } }] })
+        end
+
+        fixer_with_reasoning.send(:generate_fix, file_path, command, error_output)
+      end
+    end
+
+    context "without reasoning_effort" do
+      it "does not include reasoning parameter when reasoning_effort is nil" do
+        expect(client_double).to receive(:chat) do |params|
+          expect(params[:parameters][:reasoning]).to be_nil
+          params[:parameters][:stream]&.call({ "choices" => [{ "delta" => { "content" => "puts 'Hello World'" } }] })
+        end
+
+        fixer.send(:generate_fix, file_path, command, error_output)
+      end
     end
   end
 

@@ -31,6 +31,7 @@ You can customize the behavior using the following environment variables:
 - `LLM_API_KEY` : LLM API key
 - `LLM_API_BASE` : Base URL for the LLM API
 - `LLM_MODEL` : LLM model to use
+- `LLM_REASONING_EFFORT` : (Optional) Reasoning effort level for the LLM. Valid values: `low`, `medium`, `high`
 
 ## Usage
 
@@ -42,6 +43,8 @@ ChatGPT
 export LLM_API_KEY="your-api-key-here"
 export LLM_API_BASE="https://api.openai.com/v1"
 export LLM_MODEL="gpt-4o"
+# Optional: Set reasoning effort (low, medium, or high)
+export LLM_REASONING_EFFORT="high"
 ```
 
 Google Gemini
@@ -50,6 +53,8 @@ Google Gemini
 export LLM_API_KEY="your-api-key-here"
 export LLM_API_BASE="https://generativelanguage.googleapis.com/v1beta"
 export LLM_MODEL="gemini-2.0-pro-exp"
+# Optional: Set reasoning effort
+export LLM_REASONING_EFFORT="medium"
 ```
 
 Local(LM Studio)
