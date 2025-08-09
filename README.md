@@ -31,6 +31,7 @@ You can customize the behavior using the following environment variables:
 - `LLM_API_KEY` : LLM API key
 - `LLM_API_BASE` : Base URL for the LLM API
 - `LLM_MODEL` : LLM model to use
+- `LLM_REASONING_EFFORT` : (Optional) Reasoning effort level for the LLM. Valid values: `low`, `medium`, `high`
 
 ## Usage
 
@@ -58,6 +59,8 @@ Local(LM Studio)
 export LLM_API_KEY="n/a"
 export LLM_API_BASE="http://localhost:1234"
 export LLM_MODEL="tinyswallow-1.5b-instruct"
+# Optional: Set reasoning effort (low, medium, or high)
+export LLM_REASONING_EFFORT="high"
 ```
 
 ##
