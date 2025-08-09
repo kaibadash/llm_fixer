@@ -18,7 +18,7 @@ echo "Start bumping version: $VERSION"
 
 # Publish
 # Add release branch
-git checkout master
+git checkout main
 git checkout -b release/$VERSION
 sed -i '' "s/VERSION = \".*\"/VERSION = \"$VERSION\"/" lib/$PROJECT_NAME/version.rb
 git commit -am "Bump version $VERSION"
@@ -33,7 +33,7 @@ git tag $VERSION
 git push --tags
 open https://github.com/$GITHUB_REPO/releases/new
 
-# merge to master
-git checkout master
+# merge to main
+git checkout main
 git merge release/$VERSION
 
